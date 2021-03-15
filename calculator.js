@@ -4,7 +4,7 @@ const add = (x, y) => x + y;
 const subtract = (x, y) => x - y;
 const multiply = (x, y) => ((x * y) % 1 === 0 ? x * y : (x * y).toFixed(2));
 const divide = (x, y) => (x % y === 0 ? x / y : (x / y).toFixed(2));
-const operate = function (operator, x, y) {
+const calculate = function (operator, x, y) {
   if (operator === "+") {
     return add(x, y);
   } else if (operator === "-") {
@@ -17,7 +17,7 @@ const operate = function (operator, x, y) {
 };
 
 let updateMonitor = function () {
-  let Int = Number(arrInsert.join(""));
+  let Int = arrInsert.join("");
   monitorText.textContent = Int;
 };
 
@@ -28,70 +28,121 @@ let secondInt;
 let result;
 
 //the condition works with !== undefined, but not with === true. WHY?
-//----------number function
+////////////////////////////////////////NUMBER FUNCTION////////////////////////////////////
+function inputNumber(x) {
+  if (firstInt !== undefined && secondInt !== undefined) {
+    arrInsert = [];
+    firstInt = undefined;
+    secondInt = undefined;
+    monitorTextTop.textContent = "";
+    arrInsert.push(x);
+    updateMonitor();
+  } else if (firstInt !== undefined && arrInsert.length > 0) {
+    arrInsert.push(x);
+    updateMonitor();
+  } else if (firstInt !== undefined) {
+    monitorTextTop.textContent += " " + operator;
+    arrInsert.push(x);
+    updateMonitor();
+  } else {
+    arrInsert.push(x);
+    updateMonitor();
+  }
+}
+//mouse
 let numButtons = Array.from(document.getElementsByClassName("number"));
 numButtons.forEach((x) => {
   x.addEventListener("click", function () {
-    if (firstInt !== undefined && secondInt !== undefined) {
-      arrInsert = [];
-      firstInt = undefined;
-      secondInt = undefined;
-      monitorTextTop.textContent = "";
-      arrInsert.push(x.textContent);
-      updateMonitor();
-    } else if (firstInt !== undefined && arrInsert.length > 0) {
-      arrInsert.push(x.textContent);
-      updateMonitor();
-    } else if (firstInt !== undefined) {
-      monitorTextTop.textContent += " " + operator;
-      arrInsert.push(x.textContent);
-      updateMonitor();
-    } else {
-      arrInsert.push(x.textContent);
-      updateMonitor();
-    }
+    inputNumber(x.textContent);
   });
 });
-//----------dot function
-document.getElementById("dot").addEventListener("click", function () {
-  !arrInsert.includes(".") ? arrInsert.push(".") : false;
-  updateMonitor();
+//key
+document.addEventListener("keyup", function (e) {
+  if (0 + Number(e.key) > 0) {
+    inputNumber(e.key);
+  }
 });
-//----------clear function
-document.getElementById("clear").addEventListener("click", function () {
+
+////////////////////////////////////DOT FUNCTION////////////////////////////////////
+function placeDot() {
+  if (result !== undefined) {
+    arrInsert = [];
+    arrInsert.push(result);
+    arrInsert.push(".");
+    result = undefined;
+    firstInt = undefined;
+    secondInt = undefined;
+    updateMonitor();
+  } else {
+    !arrInsert.includes(".") ? arrInsert.push(".") : false;
+    updateMonitor();
+  }
+}
+//mouse
+document.getElementById("dot").addEventListener("click", placeDot);
+//key
+document.addEventListener("keyup", function (e) {
+  e.key === "." ? placeDot() : false;
+});
+
+///////////////////////////////////CLEAR FUNCTION////////////////////////////////////
+function cleanUp() {
   arrInsert = [];
   firstInt = undefined;
   secondInt = undefined;
   monitorText.textContent = [0];
   monitorTextTop.textContent = " ";
+}
+//mouse
+document.getElementById("clear").addEventListener("click", cleanUp);
+//key
+document.addEventListener("keyup", (e) => {
+  e.key === "Escape" ? cleanUp() : false;
 });
-//----------operator function
+
+////////////////////////////////////OPERATOR FUNCTION////////////////////////////////////
+function operate(x) {
+  if (result !== undefined) {
+    firstInt = result;
+    result = undefined;
+    secondInt = undefined;
+    arrInsert = [];
+    monitorTextTop.textContent = firstInt;
+    monitorText.textContent = x;
+    operator = x;
+  } else if (firstInt) {
+    monitorText.textContent = x;
+    operator = x;
+  } else {
+    firstInt = Number(arrInsert.join(""));
+    monitorTextTop.textContent = firstInt;
+    arrInsert = [];
+    monitorText.textContent = x;
+    operator = x;
+  }
+}
+//mouse
 const operatorButtons = Array.from(document.getElementsByClassName("operator"));
 operatorButtons.forEach((x) => {
   x.addEventListener("click", function () {
-    if (firstInt !== undefined && secondInt !== undefined) {
-      firstInt = result;
-      result = undefined;
-      secondInt = undefined;
-      arrInsert = [];
-      monitorTextTop.textContent = firstInt;
-      monitorText.textContent = x.textContent;
-      operator = x.textContent;
-    } else if (firstInt) {
-      monitorText.textContent = x.textContent;
-      operator = x.textContent;
-      console.log("jkasl");
-    } else {
-      firstInt = Number(arrInsert.join(""));
-      monitorTextTop.textContent = firstInt;
-      arrInsert = [];
-      monitorText.textContent = x.textContent;
-      operator = x.textContent;
-    }
+    operate(x.textContent);
   });
 });
-//----------flip function
-document.getElementById("flip").addEventListener("click", function () {
+//key
+document.addEventListener("keyup", function (e) {
+  if (e.key === "+") {
+    operate("+");
+  } else if (e.key === "-") {
+    operate("-");
+  } else if (e.key === "*") {
+    operate("x");
+  } else if (e.code === "Slash") {
+    operate("/");
+  }
+});
+
+/////////////////////////////////FLIP FUNCTION////////////////////////////////////
+function flip() {
   if (result !== undefined) {
     result *= -1;
     monitorText.textContent = result;
@@ -101,21 +152,40 @@ document.getElementById("flip").addEventListener("click", function () {
     arrInsert.push(num);
     monitorText.textContent = arrInsert;
   }
-});
-//----------delete function
-document.getElementById("delete").addEventListener("click", function () {
+}
+
+document.getElementById("flip").addEventListener("click", flip);
+
+//////////////////////////////////DELETE FUNCTION////////////////////////////////////
+function remove() {
   arrInsert.pop();
   updateMonitor();
+}
+//mouse
+document.getElementById("delete").addEventListener("click", remove);
+//key
+document.addEventListener("keyup", function (e) {
+  e.key === "Backspace" ? remove() : false;
 });
-//----------equals function
-document.getElementById("equals").addEventListener("click", function () {
+
+////////////////////////////////////EQUALS FUNCTION////////////////////////////////////
+function equals() {
   if (firstInt === undefined && secondInt === undefined) {
     monitorText.textContent = Number(arrInsert.join(""));
     monitorTextTop.textContent = "";
   } else {
     secondInt = Number(arrInsert.join(""));
-    result = operate(operator, firstInt, secondInt);
+    result = calculate(operator, firstInt, secondInt);
     monitorTextTop.textContent = `${firstInt} ${operator} ${secondInt} =`;
     monitorText.textContent = result;
   }
+}
+//mouse
+document.getElementById("equals").addEventListener("click", equals);
+//key
+document.addEventListener("keyup", function (e) {
+  e.key === "Enter" ? equals() : false;
 });
+
+//number of digits
+//enter key (prevent activating the last key pressed)
